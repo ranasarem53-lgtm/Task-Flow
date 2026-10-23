@@ -1,19 +1,15 @@
-import type { NextFunction, Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { env } from '../config/env'
 import { HttpError } from './http-error'
 
 export type AuthUser = { id: string; email: string }
 
-// Augment Express Request with the authenticated user
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace Express {
-    interface Request {
-      user?: AuthUser
-    }
-  }
+export interface AuthRequest extends Request {
+  user?: AuthUser
 }
+
+
 
 function extractToken(header: string | undefined): string {
   if (!header || !header.startsWith('Bearer ')) {

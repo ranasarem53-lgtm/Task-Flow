@@ -1,5 +1,5 @@
 import { env } from '../config/app-config'
-import { getStoredToken } from '../../features/auth/auth-context'
+import { getStoredToken } from '../token-storage'
 
 type RequestOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'

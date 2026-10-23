@@ -1,84 +1,51 @@
-import type { NextFunction, Request, Response } from 'express'
-import { taskService } from './task.service'
-import { HttpError } from '../../middleware/http-error'
+import { Response, NextFunction } from 'express';
+import { taskService } from './task.service';
+// هذا السطر هو الأهم، هو الذي يُعرّف السيرفر بوجود المستخدم (user)
+import { AuthRequest } from '../../middleware/auth';
 
-type TaskParams = { id: string }
-
-function requireUserId(req: Request): string {
-  if (!req.user) {
-    throw new HttpError(401, 'Authentication required')
+export const listTasks = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const tasks = await taskService.listTasks(req.user!.id);
+    res.json(tasks);
+  } catch (error) {
+    next(error);
   }
-  return req.user.id
-}
+};
 
-export const taskController = {
-  // GET /api/tasks
-  async list(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const tasks = await taskService.listTasks(requireUserId(req))
-      res.status(200).json(tasks)
-      return
-    } catch (err) {
-      next(err)
-    }
-  },
+export const getTask = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const task = await taskService.getTask(req.user!.id, req.params.id);
+    if (!task) return res.status(404).json({ message: 'Task not found' });
+    res.json(task);
+  } catch (error) {
+    next(error);
+  }
+};
 
-  // GET /api/tasks/:id
-  async get(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { id } = req.params as TaskParams
-      const task = await taskService.getTask(requireUserId(req), id)
-      res.status(200).json(task)
-      return
-    } catch (err) {
-      next(err)
-    }
-  },
+export const createTask = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const task = await taskService.createTask(req.user!.id, req.body);
+    res.status(201).json(task);
+  } catch (error) {
+    next(error);
+  }
+};
 
-  // POST /api/tasks
-  async create(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const task = await taskService.createTask(requireUserId(req), req.body)
-      res.status(201).json(task)
-      return
-    } catch (err) {
-      next(err)
-    }
-  },
+export const updateTask = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const task = await taskService.updateTask(req.user!.id, req.params.id, req.body);
+    if (!task) return res.status(404).json({ message: 'Task not found or unauthorized' });
+    res.json(task);
+  } catch (error) {
+    next(error);
+  }
+};
 
-  // PATCH /api/tasks/:id
-  async update(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { id } = req.params as TaskParams
-      const task = await taskService.updateTask(requireUserId(req), id, req.body)
-      res.status(200).json(task)
-      return
-    } catch (err) {
-      next(err)
-    }
-  },
-
-  // DELETE /api/tasks/:id
-  async remove(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { id } = req.params as TaskParams
-      await taskService.deleteTask(requireUserId(req), id)
-      res.status(204).send()
-      return
-    } catch (err) {
-      next(err)
-    }
-  },
-
-  // PATCH /api/tasks/:id/toggle
-  async toggle(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { id } = req.params as TaskParams
-      const task = await taskService.toggleCompletion(requireUserId(req), id)
-      res.status(200).json(task)
-      return
-    } catch (err) {
-      next(err)
-    }
-  },
-}
+export const deleteTask = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    await taskService.deleteTask(req.user!.id, req.params.id);
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};
