@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-ssr/
+*.tsbuildinfo
+
+# Environment files (secrets — .env.example files are safe and tracked)
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+.idea/
+*.suo
+*.sw?
+
+# User-specific VS Code settings (keep shared extensions.json)
+.vscode/*
+!.vscode/extensions.json

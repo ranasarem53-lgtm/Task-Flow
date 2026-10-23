@@ -1,0 +1,55 @@
+// Prisma schema for TaskFlow.
+// Task belongs to User: every task row is tied to exactly one user,
+// so ownership can be enforced in every query (where: { userId }).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  email     String   @unique
+  // bcrypt hash only — plain-text passwords are never stored
+  password  String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  tasks     Task[]
+
+  @@map("users")
+}
+
+model Task {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String
+  description String   @default("")
+  priority    Priority @default(medium)
+  status      Status   @default(pending)
+  // nullable in DB; serialized as ISO string over the API to match the frontend
+  dueDate     DateTime? @map("due_date")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Ownership: every task must belong to exactly one user
+  userId String @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("tasks")
+}
+
+enum Priority {
+  low
+  medium
+  high
+}
+
+enum Status {
+  pending
+  completed
+}
